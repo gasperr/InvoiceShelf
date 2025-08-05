@@ -10,9 +10,12 @@ use App\Models\Estimate;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\RecurringInvoice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Silber\Bouncer\BouncerFacade;
+use function Laravel\Prompts\outro;
+use function Pest\Laravel\get;
 
 class DashboardController extends Controller
 {
@@ -29,8 +32,12 @@ class DashboardController extends Controller
 
         $invoice_totals = [];
         $expense_totals = [];
+        $tax_totals = [];
         $receipt_totals = [];
         $net_income_totals = [];
+        $net_income_totals_prev_year = [];
+        $receipt_totals_prev_year = [];
+        $tax_totals_prev_year = [];
 
         $i = 0;
         $months = [];
@@ -52,10 +59,16 @@ class DashboardController extends Controller
             $end->subYear()->month($companyStartMonth)->endOfMonth();
         }
 
-        if ($request->has('previous_year')) {
-            $startDate->subYear()->startOfMonth();
-            $start->subYear()->startOfMonth();
-            $end->subYear()->endOfMonth();
+        if ($request->has('year')) {
+            $year = $request->year;
+
+            $baseDate = Carbon::createFromDate($year, 1, 1);
+
+            $startDate = $baseDate;
+
+            $start = $baseDate->copy()->startOfMonth(); // Jan 1, 2025
+            $end = $baseDate->copy()->endOfMonth();   // Jan 31, 2025
+
         }
 
         while ($monthCounter < 12) {
@@ -78,6 +91,15 @@ class DashboardController extends Controller
                     ->sum('base_amount')
             );
             array_push(
+                $tax_totals,
+                Invoice::whereBetween(
+                    'invoice_date',
+                    [$start->format('Y-m-d'), $end->format('Y-m-d')]
+                )
+                    ->whereCompany()
+                    ->sum('tax')
+            );
+            array_push(
                 $receipt_totals,
                 Payment::whereBetween(
                     'payment_date',
@@ -86,9 +108,33 @@ class DashboardController extends Controller
                     ->whereCompany()
                     ->sum('base_amount')
             );
+
+            array_push(
+                $receipt_totals_prev_year,
+                Payment::whereBetween(
+                    'payment_date',
+                    [$start->copy()->subYear()->format('Y-m-d'), $end->copy()->subYear()->format('Y-m-d')]
+                )
+                    ->whereCompany()
+                    ->sum('base_amount')
+            );
+            array_push(
+                $tax_totals_prev_year,
+                Invoice::whereBetween(
+                    'invoice_date',
+                    [$start->copy()->subYear()->format('Y-m-d'), $end->copy()->subYear()->format('Y-m-d')]
+                )
+                    ->whereCompany()
+                    ->sum('tax')
+            );
             array_push(
                 $net_income_totals,
-                ($receipt_totals[$i] - $expense_totals[$i])
+                ($receipt_totals[$i] - $tax_totals[$i])
+            );
+            outro($tax_totals_prev_year[$i]);
+            array_push(
+                $net_income_totals_prev_year,
+                ($receipt_totals_prev_year[$i] - $tax_totals_prev_year[$i])
             );
             $i++;
             array_push($months, $start->translatedFormat('M'));
@@ -107,6 +153,13 @@ class DashboardController extends Controller
             ->whereCompany()
             ->sum('base_total');
 
+        $total_tax = Invoice::whereBetween(
+            'invoice_date',
+            [$startDate->format('Y-m-d'), $start->format('Y-m-d')]
+        )
+            ->whereCompany()
+            ->sum('tax');
+
         $total_receipts = Payment::whereBetween(
             'payment_date',
             [$startDate->format('Y-m-d'), $start->format('Y-m-d')]
@@ -114,29 +167,74 @@ class DashboardController extends Controller
             ->whereCompany()
             ->sum('base_amount');
 
-        $total_expenses = Expense::whereBetween(
-            'expense_date',
-            [$startDate->format('Y-m-d'), $start->format('Y-m-d')]
-        )
-            ->whereCompany()
-            ->sum('base_amount');
 
-        $total_net_income = (int) $total_receipts - (int) $total_expenses;
+        $total_net_income = (int) $total_receipts - (int) $total_tax;
 
         $chart_data = [
             'months' => $months,
             'invoice_totals' => $invoice_totals,
-            'expense_totals' => $expense_totals,
+            'expense_totals' => $tax_totals,
             'receipt_totals' => $receipt_totals,
             'net_income_totals' => $net_income_totals,
+            'net_income_totals_prev_year' => $net_income_totals_prev_year,
         ];
+        outro(json_encode($chart_data));
 
-        $total_customer_count = Customer::whereCompany()->count();
+//        $total_customer_count = Customer::whereCompany()->count();
+
+        $recurringInvoices = RecurringInvoice::whereCompany()->get();
+        $total_customer_count = $recurringInvoices->sum('total');
+
         $total_invoice_count = Invoice::whereCompany()
             ->count();
-        $total_estimate_count = Estimate::whereCompany()->count();
-        $total_amount_due = Invoice::whereCompany()
-            ->sum('base_due_amount');
+
+        $total_overall_net_income = Invoice::whereCompany()
+            ->sum('total') - Invoice::whereCompany()
+                ->sum('tax');
+
+        // First day of prev month
+        $firstDayLastMonth = (new \DateTime('first day of last month'))->format('Y-m-d');
+
+        // Last day of prev month
+        $lastDayLastMonth = (new \DateTime('last day of last month'))->format('Y-m-d');
+
+
+        // First day of this month
+        $firstDayThisMonth = (new \DateTime('first day of this month'))->format('Y-m-d');
+
+        // Last day of this month
+        $lastDayThisMonth = (new \DateTime('last day of this month'))->format('Y-m-d');
+
+
+        $total_this_month = Invoice::whereBetween(
+            'invoice_date',
+            [$firstDayThisMonth, $lastDayThisMonth]
+        )
+            ->whereCompany()
+            ->sum('total');
+        $tax_this_month = Invoice::whereBetween(
+            'invoice_date',
+            [$firstDayThisMonth, $lastDayThisMonth]
+        )
+            ->whereCompany()
+            ->sum('tax');
+
+        $total_amount_due = $total_this_month - $tax_this_month;
+
+        $total_previous_month = Invoice::whereBetween(
+            'invoice_date',
+            [$firstDayLastMonth, $lastDayLastMonth]
+        )
+            ->whereCompany()
+            ->sum('total');
+        $tax_previous_month = Invoice::whereBetween(
+            'invoice_date',
+            [$firstDayLastMonth, $lastDayLastMonth]
+        )
+            ->whereCompany()
+            ->sum('tax');
+
+        $total_net_previous_month = $total_previous_month - $tax_previous_month;
 
         $recent_due_invoices = Invoice::with('customer')
             ->whereCompany()
@@ -148,18 +246,18 @@ class DashboardController extends Controller
 
         return response()->json([
             'total_amount_due' => $total_amount_due,
+            'total_overall_net_income' => $total_overall_net_income,
+            'total_net_previous_month' => $total_net_previous_month,
             'total_customer_count' => $total_customer_count,
             'total_invoice_count' => $total_invoice_count,
-            'total_estimate_count' => $total_estimate_count,
 
             'recent_due_invoices' => BouncerFacade::can('view-invoice', Invoice::class) ? $recent_due_invoices : [],
-            'recent_estimates' => BouncerFacade::can('view-estimate', Estimate::class) ? $recent_estimates : [],
 
             'chart_data' => $chart_data,
 
             'total_sales' => $total_sales,
+            'total_tax' => $total_tax,
             'total_receipts' => $total_receipts,
-            'total_expenses' => $total_expenses,
             'total_net_income' => $total_net_income,
         ]);
     }

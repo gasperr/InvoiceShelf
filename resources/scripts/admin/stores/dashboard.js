@@ -13,6 +13,8 @@ export const useDashboardStore = (useWindow = false) => {
     state: () => ({
       stats: {
         totalAmountDue: 0,
+        totalNetIncome: 0,
+        netPreviousMonth: 0,
         totalCustomerCount: 0,
         totalInvoiceCount: 0,
         totalEstimateCount: 0,
@@ -24,11 +26,13 @@ export const useDashboardStore = (useWindow = false) => {
         expenseTotals: [],
         receiptTotals: [],
         netIncomeTotals: [],
+        netIncomeTotalsPrevYear: [],
       },
 
       totalSales: null,
       totalReceipts: null,
       totalExpenses: null,
+      total_tax: null,
       totalNetIncome: null,
 
       recentDueInvoices: [],
@@ -41,45 +45,50 @@ export const useDashboardStore = (useWindow = false) => {
       loadData(params) {
         return new Promise((resolve, reject) => {
           axios
-            .get(`/api/v1/dashboard`, { params })
-            .then((response) => {
-              // Stats
-              this.stats.totalAmountDue = response.data.total_amount_due
-              this.stats.totalCustomerCount = response.data.total_customer_count
-              this.stats.totalInvoiceCount = response.data.total_invoice_count
-              this.stats.totalEstimateCount = response.data.total_estimate_count
+          .get(`/api/v1/dashboard`, { params })
+          .then((response) => {
+            // Stats
+            this.stats.totalAmountDue = response.data.total_amount_due
+            this.stats.totalNetIncome = response.data.total_overall_net_income
+            this.stats.netPreviousMonth = response.data.total_net_previous_month
+            this.stats.totalCustomerCount = response.data.total_customer_count
+            this.stats.totalInvoiceCount = response.data.total_invoice_count
+            this.stats.totalEstimateCount = response.data.total_estimate_count
 
-              // Dashboard Chart
-              if (this.chartData && response.data.chart_data) {
-                this.chartData.months = response.data.chart_data.months
-                this.chartData.invoiceTotals =
-                  response.data.chart_data.invoice_totals
-                this.chartData.expenseTotals =
-                  response.data.chart_data.expense_totals
-                this.chartData.receiptTotals =
-                  response.data.chart_data.receipt_totals
-                this.chartData.netIncomeTotals =
-                  response.data.chart_data.net_income_totals
-              }
+            // Dashboard Chart
+            if (this.chartData && response.data.chart_data) {
+              this.chartData.months = response.data.chart_data.months
+              this.chartData.invoiceTotals =
+                response.data.chart_data.invoice_totals
+              this.chartData.expenseTotals =
+                response.data.chart_data.expense_totals
+              this.chartData.receiptTotals =
+                response.data.chart_data.receipt_totals
+              this.chartData.netIncomeTotals =
+                response.data.chart_data.net_income_totals
+              this.chartData.netIncomeTotalsPrevYear =
+                response.data.chart_data.net_income_totals_prev_year
+            }
 
-              // Dashboard Chart Labels
-              this.totalSales = response.data.total_sales
-              this.totalReceipts = response.data.total_receipts
-              this.totalExpenses = response.data.total_expenses
-              this.totalNetIncome = response.data.total_net_income
+            // Dashboard Chart Labels
+            this.totalSales = response.data.total_sales
+            this.totalReceipts = response.data.total_receipts
+            this.totalExpenses = response.data.total_expenses
+            this.total_tax = response.data.total_tax
+            this.totalNetIncome = response.data.total_net_income
 
-              // Dashboard Table Data
-              this.recentDueInvoices = response.data.recent_due_invoices
-              this.recentEstimates = response.data.recent_estimates
+            // Dashboard Table Data
+            this.recentDueInvoices = response.data.recent_due_invoices
+            this.recentEstimates = response.data.recent_estimates
 
-              this.isDashboardDataLoaded = true
+            this.isDashboardDataLoaded = true
 
-              resolve(response)
-            })
-            .catch((err) => {
-              handleError(err)
-              reject(err)
-            })
+            resolve(response)
+          })
+          .catch((err) => {
+            handleError(err)
+            reject(err)
+          })
         })
       },
     },

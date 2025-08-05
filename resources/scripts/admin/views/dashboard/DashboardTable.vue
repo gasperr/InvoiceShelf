@@ -52,53 +52,53 @@
       </div>
 
       <!-- Recent Estimates -->
-      <div
-        v-if="userStore.hasAbilities(abilities.VIEW_ESTIMATE)"
-        class="recent-estimates"
-      >
-        <div class="relative z-10 flex items-center justify-between mb-3">
-          <h6 class="mb-0 text-xl font-semibold leading-normal">
-            {{ $t('dashboard.recent_estimate_card.title') }}
-          </h6>
+<!--      <div-->
+<!--        v-if="userStore.hasAbilities(abilities.VIEW_ESTIMATE)"-->
+<!--        class="recent-estimates"-->
+<!--      >-->
+<!--        <div class="relative z-10 flex items-center justify-between mb-3">-->
+<!--          <h6 class="mb-0 text-xl font-semibold leading-normal">-->
+<!--            {{ $t('dashboard.recent_estimate_card.title') }}-->
+<!--          </h6>-->
 
-          <BaseButton
-            variant="primary-outline"
-            size="sm"
-            @click="$router.push('/admin/estimates')"
-          >
-            {{ $t('dashboard.recent_estimate_card.view_all') }}
-          </BaseButton>
-        </div>
+<!--          <BaseButton-->
+<!--            variant="primary-outline"-->
+<!--            size="sm"-->
+<!--            @click="$router.push('/admin/estimates')"-->
+<!--          >-->
+<!--            {{ $t('dashboard.recent_estimate_card.view_all') }}-->
+<!--          </BaseButton>-->
+<!--        </div>-->
 
-        <BaseTable
-          :data="dashboardStore.recentEstimates"
-          :columns="recentEstimateColumns"
-          :loading="!dashboardStore.isDashboardDataLoaded"
-        >
-          <template #cell-user="{ row }">
-            <router-link
-              :to="{ path: `estimates/${row.data.id}/view` }"
-              class="font-medium text-primary-500"
-            >
-              {{ row.data.customer.name }}
-            </router-link>
-          </template>
+<!--        <BaseTable-->
+<!--          :data="dashboardStore.recentEstimates"-->
+<!--          :columns="recentEstimateColumns"-->
+<!--          :loading="!dashboardStore.isDashboardDataLoaded"-->
+<!--        >-->
+<!--          <template #cell-user="{ row }">-->
+<!--            <router-link-->
+<!--              :to="{ path: `estimates/${row.data.id}/view` }"-->
+<!--              class="font-medium text-primary-500"-->
+<!--            >-->
+<!--              {{ row.data.customer.name }}-->
+<!--            </router-link>-->
+<!--          </template>-->
 
-          <template #cell-total="{ row }">
-            <BaseFormatMoney
-              :amount="row.data.total"
-              :currency="row.data.customer.currency"
-            />
-          </template>
+<!--          <template #cell-total="{ row }">-->
+<!--            <BaseFormatMoney-->
+<!--              :amount="row.data.total"-->
+<!--              :currency="row.data.customer.currency"-->
+<!--            />-->
+<!--          </template>-->
 
-          <template
-            v-if="hasAtleastOneEstimateAbility()"
-            #cell-actions="{ row }"
-          >
-            <EstimateDropdown :row="row.data" :table="estimateTableComponent" />
-          </template>
-        </BaseTable>
-      </div>
+<!--          <template-->
+<!--            v-if="hasAtleastOneEstimateAbility()"-->
+<!--            #cell-actions="{ row }"-->
+<!--          >-->
+<!--            <EstimateDropdown :row="row.data" :table="estimateTableComponent" />-->
+<!--          </template>-->
+<!--        </BaseTable>-->
+<!--      </div>-->
     </div>
   </div>
 </template>

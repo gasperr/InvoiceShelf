@@ -7,7 +7,7 @@
       :loading="!dashboardStore.isDashboardDataLoaded"
       route="/admin/invoices"
       :large="true"
-      :label="$t('dashboard.cards.due_amount')"
+      :label="$t('Net this month')"
     >
       <BaseFormatMoney
         :amount="dashboardStore.stats.totalAmountDue"
@@ -15,38 +15,58 @@
       />
     </DashboardStatsItem>
 
+    <DashboardStatsItem
+      v-if="userStore.hasAbilities(abilities.VIEW_INVOICE)"
+      :icon-component="PaymentIcon"
+      :loading="!dashboardStore.isDashboardDataLoaded"
+      route="/admin/invoices"
+      :large="false"
+      :label="$t('Net previous month')"
+    >
+      <BaseFormatMoney
+        :amount="dashboardStore.stats.netPreviousMonth"
+        :currency="companyStore.selectedCompanyCurrency"
+      />
+    </DashboardStatsItem>
+
+    <DashboardStatsItem
+      v-if="userStore.hasAbilities(abilities.VIEW_INVOICE)"
+      :icon-component="PaymentIcon"
+      :loading="!dashboardStore.isDashboardDataLoaded"
+      route="/admin/invoices"
+      :large="false"
+      :label="$t('All net income')"
+    >
+      <BaseFormatMoney
+        :amount="dashboardStore.stats.totalNetIncome"
+        :currency="companyStore.selectedCompanyCurrency"
+      />
+    </DashboardStatsItem>
+
     <!-- Customers -->
     <DashboardStatsItem
       v-if="userStore.hasAbilities(abilities.VIEW_CUSTOMER)"
-      :icon-component="CustomerIcon"
-      :loading="!dashboardStore.isDashboardDataLoaded"
-      route="/admin/customers"
-      :label="(dashboardStore.stats.totalCustomerCount <= 1 ? $t('dashboard.cards.customers', 1) : $t('dashboard.cards.customers', 2))"
-    >
-      {{ dashboardStore.stats.totalCustomerCount }}
-    </DashboardStatsItem>
-
-    <!-- Invoices -->
-    <DashboardStatsItem
-      v-if="userStore.hasAbilities(abilities.VIEW_INVOICE)"
       :icon-component="InvoiceIcon"
       :loading="!dashboardStore.isDashboardDataLoaded"
-      route="/admin/invoices"
-      :label="(dashboardStore.stats.totalInvoiceCount <= 1 ? $t('dashboard.cards.invoices', 1) : $t('dashboard.cards.invoices', 2))"
+      route="/admin/recurring-invoices"
+      :label="$t('Recurring income')"
     >
-      {{ dashboardStore.stats.totalInvoiceCount }}
+      <BaseFormatMoney
+        :amount="dashboardStore.stats.totalCustomerCount"
+        :currency="companyStore.selectedCompanyCurrency"
+      />
     </DashboardStatsItem>
 
-    <!-- Estimates -->
-    <DashboardStatsItem
-      v-if="userStore.hasAbilities(abilities.VIEW_ESTIMATE)"
-      :icon-component="EstimateIcon"
-      :loading="!dashboardStore.isDashboardDataLoaded"
-      route="/admin/estimates"
-      :label="(dashboardStore.stats.totalEstimateCount <= 1 ? $t( 'dashboard.cards.estimates', 1) : $t('dashboard.cards.estimates', 2))"
-    >
-      {{ dashboardStore.stats.totalEstimateCount }}
-    </DashboardStatsItem>
+    <!--    &lt;!&ndash; Invoices &ndash;&gt;-->
+    <!--    <DashboardStatsItem-->
+    <!--      v-if="userStore.hasAbilities(abilities.VIEW_INVOICE)"-->
+    <!--      :icon-component="InvoiceIcon"-->
+    <!--      :loading="!dashboardStore.isDashboardDataLoaded"-->
+    <!--      route="/admin/invoices"-->
+    <!--      :label="(dashboardStore.stats.totalInvoiceCount <= 1 ? $t('dashboard.cards.invoices', 1) : $t('dashboard.cards.invoices', 2))"-->
+    <!--    >-->
+    <!--      {{ dashboardStore.stats.totalInvoiceCount }}-->
+    <!--    </DashboardStatsItem>-->
   </div>
 </template>
 
@@ -62,6 +82,7 @@ import { inject } from 'vue'
 import { useDashboardStore } from '@/scripts/admin/stores/dashboard'
 import { useCompanyStore } from '@/scripts/admin/stores/company'
 import { useUserStore } from '@/scripts/admin/stores/user'
+import PaymentIcon from '@/scripts/components/icons/dashboard/PaymentIcon.vue'
 
 const utils = inject('utils')
 

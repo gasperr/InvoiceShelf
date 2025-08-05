@@ -42,6 +42,11 @@ const props = defineProps({
     require: true,
     default: Array,
   },
+  lastYear: {
+    type: Array,
+    require: true,
+    default: Array,
+  },
 })
 
 let myLineChart = null
@@ -152,21 +157,42 @@ onMounted(() => {
         fill: false,
         lineTension: 0.3,
         backgroundColor: 'rgba(236, 235, 249)',
-        borderColor: 'rgba(88, 81, 216, 1)',
+        borderColor: 'rgba(4, 129, 163)',
         borderCapStyle: 'butt',
         borderDash: [],
         borderDashOffset: 0.0,
         borderJoinStyle: 'miter',
-        pointBorderColor: 'rgba(88, 81, 216, 1)',
+        pointBorderColor: 'rgba(4, 129, 163)',
         pointBackgroundColor: '#fff',
         pointBorderWidth: 1,
         pointHoverRadius: 5,
-        pointHoverBackgroundColor: 'rgba(88, 81, 216, 1)',
+        pointHoverBackgroundColor: 'rgba(4, 129, 163)',
         pointHoverBorderColor: 'rgba(220,220,220,1)',
         pointHoverBorderWidth: 2,
         pointRadius: 4,
         pointHitRadius: 10,
         data: props.income.map((_i) => _i / 100),
+      },
+      {
+        label: 'Net Income Last Year',
+        fill: false,
+        lineTension: 0.3,
+        backgroundColor: 'rgba(236, 235, 249)',
+        borderColor: 'rgba(128, 128, 128, 1)',
+        borderCapStyle: 'butt',
+        borderDash: [],
+        borderDashOffset: 0.0,
+        borderJoinStyle: 'miter',
+        pointBorderColor: 'rgba(128, 128, 128, 1)',
+        pointBackgroundColor: '#fff',
+        pointBorderWidth: 1,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: 'rgba(128, 128, 128, 1)',
+        pointHoverBorderColor: 'rgba(220,220,220,1)',
+        pointHoverBorderWidth: 2,
+        pointRadius: 4,
+        pointHitRadius: 10,
+        data: props.lastYear.map((_i) => _i / 100),
       },
     ],
   })
@@ -190,6 +216,7 @@ function update() {
     (expense) => expense / 100
   )
   myLineChart.data.datasets[3].data = props.income.map((_i) => _i / 100)
+  myLineChart.data.datasets[4].data = props.lastYear.map((_i) => _i / 100)
   myLineChart.update({
     lazy: true,
   })

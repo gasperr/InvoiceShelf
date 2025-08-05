@@ -35,6 +35,7 @@
         </div>
 
         <LineChart
+          :lastYear="dashboardStore.chartData.netIncomeTotalsPrevYear"
           :invoices="dashboardStore.chartData.invoiceTotals"
           :expenses="dashboardStore.chartData.expenseTotals"
           :receipts="dashboardStore.chartData.receiptTotals"
@@ -92,7 +93,7 @@
         </div>
         <div class="p-6">
           <span class="text-xs leading-5 lg:text-sm">
-            {{ $t('dashboard.chart_info.total_expense') }}
+            Tax
           </span>
           <br />
           <span
@@ -107,7 +108,7 @@
             "
           >
             <BaseFormatMoney
-              :amount="dashboardStore.totalExpenses"
+              :amount="dashboardStore.total_tax"
               :currency="companyStore.selectedCompanyCurrency"
             />
           </span>
@@ -164,19 +165,24 @@ const companyStore = useCompanyStore()
 const { t } = useI18n()
 const utils = inject('utils')
 const userStore = useUserStore()
-const years = ref( [{label: t('dateRange.this_year'), value: 'This year'}, {label: t( 'dateRange.previous_year'), value:
-  'Previous year'}])
-const selectedYear = ref('This year')
+const currentYear = new Date().getFullYear()
+const previousYear = new Date().getFullYear()-1
+const previousYearMinus2 = new Date().getFullYear()-2
+const previousYearMinus3 = new Date().getFullYear()-3
+const previousYearMinus4 = new Date().getFullYear()-4
+const years = ref( [
+  {label: t('dateRange.this_year'), value: currentYear},
+  {label: t( 'dateRange.previous_year'), value: previousYear},
+  {label: previousYearMinus2, value: previousYearMinus2},
+  {label: previousYearMinus3, value: previousYearMinus3},
+  {label: previousYearMinus4, value: previousYearMinus4}])
+const selectedYear = ref(currentYear)
 
 watch(
   selectedYear,
   (val) => {
-    if (val === 'Previous year') {
-      let params = { previous_year: true }
-      loadData(params)
-    } else {
-      loadData()
-    }
+    let params = { year: val }
+    loadData(params)
   },
   { immediate: true }
 )
