@@ -555,6 +555,12 @@ export const useInvoiceStore = (useWindow = false) => {
             reject(err)
           })
       },
+
+      downloadCurrentMonthInvoices() {
+        return axios.get('/api/v1/invoices/download-current-month', {
+          responseType: 'blob'
+        })
+      },
     },
   })()
 }

@@ -436,7 +436,7 @@
     "add_new_invoice": "Add New Invoice",
     "update_expense": "Update Expense",
     "edit_invoice": "Edit Invoice",
-    "new_invoice": "New Invoice",
+    "new_invoice": "Račun za pretekli mesec",
     "save_invoice": "Save Invoice",
     "update_invoice": "Update Invoice",
     "add_new_tax": "Add New Tax",

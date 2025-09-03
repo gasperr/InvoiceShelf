@@ -271,6 +271,8 @@ Route::prefix('/v1')->group(function () {
 
             Route::post('/invoices/delete', [InvoicesController::class, 'delete']);
 
+            Route::get('/invoices/download-current-month', [InvoicesController::class, 'downloadCurrentMonthInvoices']);
+
             Route::get('/invoices/templates', InvoiceTemplatesController::class);
 
             Route::apiResource('invoices', InvoicesController::class);

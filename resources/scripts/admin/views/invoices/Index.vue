@@ -24,6 +24,13 @@
           </template>
         </BaseButton>
 
+        <BaseButton variant="primary-outline" class="ml-4" @click="downloadCurrentMonthInvoices">
+          <template #left="slotProps">
+            <BaseIcon name="PlusIcon" :class="slotProps.class" />
+          </template>
+          Download invoices for this month
+        </BaseButton>
+
         <router-link
           v-if="userStore.hasAbilities(abilities.CREATE_INVOICE)"
           to="invoices/create"
@@ -555,6 +562,30 @@ function setActiveTab(val) {
     default:
       activeTab.value = t('general.all')
       break
+  }
+}
+
+async function downloadCurrentMonthInvoices() {
+  try {
+    const response = await invoiceStore.downloadCurrentMonthInvoices()
+    
+    const blob = new Blob([response.data])
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `invoices_${new Date().getFullYear()}_${String(new Date().getMonth() + 1).padStart(2, '0')}.zip`
+    link.click()
+    window.URL.revokeObjectURL(url)
+    
+    notificationStore.showNotification({
+      type: 'success',
+      message: t('invoices.download_started')
+    })
+  } catch (error) {
+    notificationStore.showNotification({
+      type: 'error',
+      message: error.response?.data?.message || t('general.something_went_wrong')
+    })
   }
 }
 </script>
